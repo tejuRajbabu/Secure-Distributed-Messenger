@@ -297,7 +297,17 @@ public class Server
     /// </summary>
     public void Stop()
     {
-        throw new NotImplementedException("Implement Stop() - see TODO in comments above");
+        _cancellationTokenSource.Cancel(); // Cancel the cancellation token
+        _listener.Stop(); // Stop the listener
+        IsListening = false; // Set IsListening to false
+        lock (_clientsLock) // Lock the _clientsLock to ensure thread safety when accessing the _clients list
+            {
+                foreach (var client in _clients) // Loop through each client in the _clients list
+                {
+                    client.Close(); // Close each client connection
+                }
+                _clients.Clear(); // Clear the _clients list after closing all connections
+            }
     }
 
     /// <summary>
