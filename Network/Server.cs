@@ -258,7 +258,31 @@ public class Server
     /// </summary>
     public void Broadcast(Message message)
     {
-        throw new NotImplementedException("Implement Broadcast() - see TODO in comments above");
+        string json = JsonSerializer.Serialize(message); // Serialize the message to JSON using JsonSerializer.Serialize
+
+        byte[] bytes = Encoding.UTF8.GetBytes(json); // Convert to bytes using Encoding.UTF8.GetBytes
+
+        byte[4] lengthPrefix = BitConverter.GetBytes(bytes.Length); // Create a 4-byte length prefix using BitConverter.GetBytes
+
+        List<TcpClient> clientsCopy; // Variable to hold a copy of the _clients list
+
+        for (int i = 0; i < clientsCopy.Count; i++) // Loop through each connected client
+        {
+            TcpClient client = clientsCopy[i]; // Get the current client from the copy of the _clients list
+
+            try
+            {
+                NetworkStream stream = client.GetStream(); // Get the NetworkStream for the current client
+
+                stream.Write(lengthPrefix, 0, lengthPrefix.Length); // Write the length prefix (4 bytes) to the client's stream
+
+                stream.Write(bytes, 0, bytes.Length); // Write the payload (the serialized message) to the client's stream
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error broadcasting to client {client.Client.RemoteEndPoint}: {ex.Message}"); // Log any exceptions that occur while trying to broadcast to an individual client, but continue broadcasting to other clients
+            }
+        }
     }
 
     /// <summary>
