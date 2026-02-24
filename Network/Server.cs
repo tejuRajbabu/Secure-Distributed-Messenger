@@ -262,9 +262,14 @@ public class Server
 
         byte[] bytes = Encoding.UTF8.GetBytes(json); // Convert to bytes using Encoding.UTF8.GetBytes
 
-        byte[4] lengthPrefix = BitConverter.GetBytes(bytes.Length); // Create a 4-byte length prefix using BitConverter.GetBytes
+        byte[] lengthPrefix = BitConverter.GetBytes(bytes.Length); // Create a 4-byte length prefix using BitConverter.GetBytes
 
         List<TcpClient> clientsCopy; // Variable to hold a copy of the _clients list
+
+        lock (_clientsLock)
+        {
+            clientsCopy = new List<TcpClient>(_clients);
+        }
 
         for (int i = 0; i < clientsCopy.Count; i++) // Loop through each connected client
         {
