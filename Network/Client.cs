@@ -1,4 +1,4 @@
-// [Your Name Here]
+// Ethan Chang
 // CSCI 251 - Secure Distributed Messenger
 //
 // SPRINT 1: Threading & Basic Networking
@@ -71,9 +71,25 @@ public class Client
     /// </summary>
     public async Task<bool> ConnectAsync(string host, int port)
     {
-        throw new NotImplementedException("Implement ConnectAsync() - see TODO in comments above");
-    }
+        _cancellationTokenSource = new CancellationTokenSource(); // Create a new CancellationTokenSource
 
+        _client = new TcpClient(); // Create a new TcpClient
+
+        try
+        {
+            await _client.ConnectAsync(host, port, _cancellationTokenSource.Token); // Asynchronously connect to the specified host and port
+            _stream = _client.GetStream(); // Get the NetworkStream from the client
+            _serverEndpoint = $"{host}:{port}"; // Store the endpoint string (e.g
+            OnConnected?.Invoke(_serverEndpoint); // Invoke the OnConnected event with the server endpoint
+            _ = Task.Run(ReceiveAsync); // Start the ReceiveAsync method on a background Task
+            return true; // Return true on successful connection
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error connecting to server: {ex.Message}");
+            return false;
+        }
+    }
     /// <summary>
     /// Receive loop - runs on background thread.
     /// Uses length-prefix framing: 4 bytes for length, then JSON payload.
