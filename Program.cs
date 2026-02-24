@@ -1,5 +1,4 @@
 // Donald Tsang
-// Donald Tsang
 // CSCI 251 - Secure Distributed Messenger
 // Group Project
 //
@@ -8,8 +7,6 @@
 // (Continue enhancing in Sprints 2 & 3)
 //
 
-using System.Net;
-using Microsoft.VisualBasic;
 using System.Net;
 using Microsoft.VisualBasic;
 using SecureMessenger.Core;
@@ -62,15 +59,16 @@ class Program
     private static Server? _server;
     private static Client? _client;
     private static ConsoleUI? _ui;
-    private static ConsoleUI? _ui;
     private static string _username = "User";
     private static MessageQueue _queue = new();
     
     private static CancellationTokenSource _cts = new();
+    // private static Server? _server;
+    // private static Client? _client;
+    // private static ConsoleUI? _ui; (DONE)
+    // private static string _username = "User";
     //
     // Sprint 3 additions:
-    private static PeerDiscovery? _peerDiscovery;
-    private static HeartbeatMonitor? _heartbeatMonitor;
     private static PeerDiscovery? _peerDiscovery;
     private static HeartbeatMonitor? _heartbeatMonitor;
 
@@ -82,8 +80,22 @@ class Program
         // TODO: Initialize components
         // 1. Create Server for incoming connections
         // 2. Create Client for outgoing connection
-        // 3. Create ConsoleUI for user interface
+        // 3. Create ConsoleUI for user interface (DONE)
         // 4. (Optional) Create MessageQueue if using producer/consumer pattern
+
+        _server = new Server();
+        _client = new Client();
+        _ui = new ConsoleUI();
+
+        _server.OnMessageReceived += message =>
+        {
+            _queue.EnqueueIncoming(message);
+        };
+
+        _client.OnMessageReceived += message =>
+        {
+            _queue.EnqueueIncoming(message);
+        };
 
         // TODO: Subscribe to events
         // Server events:
@@ -131,42 +143,11 @@ class Program
         sendThread!.Name = "SendThread";
         sendThread!.Start();
 
-        Thread receiveThread = new Thread(() =>
-        {
-            try
-            {
-                while (!_cts.Token.IsCancellationRequested)
-                {
-                    Message message = _queue.DequeueIncoming(_cts.Token);
-                    _ui.DisplayMessage(message);
-                    // TODO (Whoever does Console UI) Display the message in UI
-                }
-            } catch (OperationCanceledException) {}
-        });
-        receiveThread!.IsBackground = true;
-        receiveThread!.Name = "ReceiveThread";
-        receiveThread!.Start();
-
-        Thread sendThread = new Thread(() =>
-        {
-            try
-            {
-                while (!_cts.Token.IsCancellationRequested)
-                {
-                    Message message = _queue.DequeueOutgoing(_cts.Token);
-                    _server?.Broadcast(message);
-                    _client?.Send(message);
-                }
-            } catch (OperationCanceledException) {}
-        });
-        sendThread!.IsBackground = true;
-        sendThread!.Name = "SendThread";
-        sendThread!.Start();
-
         // Main loop - handle user input
         bool running = true;
         while (running)
         {
+            // DONE:
             // TODO: Implement the main input loop
             // 1. Read a line from the console
             // 2. Skip empty input
@@ -182,18 +163,28 @@ class Program
             var input = Console.ReadLine();
             if (string.IsNullOrEmpty(input)) continue;
 
-            // Temporary basic command handling - replace with full implementation
-            switch (input.ToLower())
+            CommandResult commandResult = _ui.ParseCommand(input);
+
+            switch(commandResult.CommandType)
             {
-                case "/quit":
-                case "/exit":
+                case CommandType.Connect:
+                    // Not implemented because Client doesn't exist
+                    await _client.ConnectAsync(commandResult.Args[0], int.Parse(commandResult.Args[1]));
+                    break;
+                case CommandType.Listen:
+                    // Not implemented because Server doesn't exist 
+                    await _server.Start(int.Parse(commandResult.Args[0]));
+                    break;
+                case CommandType.Quit:
                     running = false;
                     break;
-                case "/help":
-                    ShowHelp();
+                case CommandType.Help:  
+                    _ui.ShowHelp();
                     break;
                 default:
-                    Console.WriteLine("Command not yet implemented. See TODO comments.");
+                    // Not implemented because SendMessage isn't implemented
+                    var msg = new Message { Sender = _username, Content = commandResult.Message! };
+                    _queue.EnqueueOutgoing(msg);
                     break;
             }
         }
@@ -208,14 +199,9 @@ class Program
         sendThread.Join();
         _server?.Stop();
         _client?.Disconnect();
-        _cts.Cancel();
-        _queue.CompleteAdding();
-        receiveThread.Join();
-        sendThread.Join();
-        _server?.Stop();
-        _client?.Disconnect();
 
         Console.WriteLine("Goodbye!");
+
     }
 
     /// <summary>
