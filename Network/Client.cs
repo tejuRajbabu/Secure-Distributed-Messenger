@@ -230,6 +230,9 @@ public class Client
     /// </summary>
     public void Disconnect()
     {
-        throw new NotImplementedException("Implement Disconnect() - see TODO in comments above");
+        _cancellationTokenSource.Cancel(); // Cancel the cancellation token
+        _stream?.Close(); // Close the stream
+        _client?.Close(); // Close the client
+        
     }
 }
