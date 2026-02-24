@@ -22,7 +22,9 @@
 //               integrate with PeerDiscovery for automatic connections
 //
 
+using System.Linq.Expressions;
 using System.Net.Sockets;
+using System.Numerics;
 using System.Text;
 using System.Text.Json;
 using SecureMessenger.Core;
@@ -115,7 +117,66 @@ public class Client
     /// </summary>
     private async Task ReceiveAsync()
     {
-        throw new NotImplementedException("Implement ReceiveAsync() - see TODO in comments above");
+        try
+        {
+            byte[] lengthBuffer = new byte[4]; // Buffer for reading message length
+            while (!_cancellationTokenSource!.Token.IsCancellationRequested && _client?.Connected == true)
+            {
+                int totalBytesRead = 0;
+
+                while (totalBytesRead < 4)
+                {
+                    int bytesRead = await _stream!.ReadAsync(lengthBuffer, totalBytesRead, 4 - totalBytesRead, _cancellationTokenSource.Token);
+                    if (bytesRead == 0)
+                    {
+                        Console.WriteLine("Server disconnected.");
+                        return; // Server disconnected
+                    }
+                    totalBytesRead += bytesRead;
+                }
+
+                int messageLength = BitConverter.ToInt32(lengthBuffer, 0); // Convert bytes to int for message length
+
+                if (messageLength <= 0 || messageLength > 1_000_000)
+                {
+                    Console.WriteLine($"Invalid message length: {messageLength}");
+                    return; // Invalid length, close connection
+                }
+
+                byte[] payloadBuffer = new byte[messageLength];
+
+                totalBytesRead = 0;
+                while (totalBytesRead < messageLength)
+                {
+                    int bytesRead = await _stream!.ReadAsync(payloadBuffer, totalBytesRead, messageLength - totalBytesRead, _cancellationTokenSource.Token);
+                    if (bytesRead == 0)
+                    {
+                        Console.WriteLine("Server disconnected during payload read.");
+                        return; // Server disconnected
+                    }
+                    totalBytesRead += bytesRead;
+                }
+
+                string payload = Encoding.UTF8.GetString(payloadBuffer);
+
+                Message? message = JsonSerializer.Deserialize<Message>(payload);
+
+                OnMessageReceived?.Invoke(message); // Invoke the OnMessageReceived event with the deserialized message
+
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Normal shutdown, do nothing
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in receive loop: {ex.Message}");
+        }
+        finally
+        {
+            OnDisconnected?.Invoke(_serverEndpoint); // Invoke the OnDisconnected event with the server endpoint
+        }
     }
 
     /// <summary>
