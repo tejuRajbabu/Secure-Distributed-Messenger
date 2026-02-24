@@ -54,10 +54,10 @@ class Program
 {
     // TODO: Declare your components as fields for access across methods
     // Sprint 1-2 components:
-    // private static Server? _server;
-    // private static Client? _client;
-    // private static ConsoleUI? _ui; (DONE)
-    // private static string _username = "User";
+    private static Server? _server;
+    private static Client? _client;
+    private static ConsoleUI? _ui; //(DONE)
+    private static string _username = "User";
     //
     // Sprint 3 additions:
     // private static PeerDiscovery? _peerDiscovery;
