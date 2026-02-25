@@ -112,14 +112,14 @@ class Program
         Console.WriteLine("Type /help for available commands");
         Console.WriteLine();
 
-        Thread receiveThread = new Thread(() =>
+        Thread receiveThread = new Thread(async () =>
         {
             try
             {
                 while (!_cts.Token.IsCancellationRequested)
                 {
                     Message message = _queue.DequeueIncoming(_cts.Token);
-                    _ui.DisplayMessage(message);
+                    await _ui.DisplayMessage(message);
                 }
             } catch (OperationCanceledException) {}
         });
