@@ -8,7 +8,6 @@
 - Ethan Chang - Basic TCP Communication
 - Cooper Miles - Console UI
 - Teju - Management, documentation, debugging (helping all of us)
-- [Name 5] - [Role/Responsibilities]
 
 **Date:** 2/27/26
 
