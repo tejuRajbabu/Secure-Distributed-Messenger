@@ -90,6 +90,7 @@ class Program
         _server.OnMessageReceived += message =>
         {
             _queue.EnqueueIncoming(message);
+            _server?.Broadcast(message); 
         };
 
         _client.OnMessageReceived += message =>
@@ -118,13 +119,7 @@ class Program
                 while (!_cts.Token.IsCancellationRequested)
                 {
                     Message message = _queue.DequeueIncoming(_cts.Token);
-                    if (message.Sender == "System")
-                    {
-                        _ui.DisplaySystem(message.Content);
-                    }else {
-                        _ui.DisplayMessage(message);
-                    }
-                
+                    _ui.DisplayMessage(message);
                 }
             } catch (OperationCanceledException) {}
         });
@@ -190,10 +185,12 @@ class Program
                     _ui.ShowHelp();
                     break;
                 default:
-                    // Not implemented because SendMessage isn't implemented
-                    string sender = (_client?.IsConnected ?? false) ? _username : "System";
-                    var msg = new Message { Sender = sender, Content = commandResult.Message! };
-                    _queue.EnqueueOutgoing(msg);
+                    // Only send if connected to a server; otherwise this node is a pure relay
+                    if (_client?.IsConnected == true)
+                    {
+                        var msg = new Message { Sender = _username, Content = commandResult.Message! };
+                        _queue.EnqueueOutgoing(msg);
+                    }
                     break;
             }
         }
