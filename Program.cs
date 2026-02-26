@@ -54,8 +54,6 @@ namespace SecureMessenger;
 /// </summary>
 class Program
 {
-    // TODO: Declare your components as fields for access across methods
-    // Sprint 1-2 components:
     private static Server? _server;
     private static Client? _client;
     private static ConsoleUI? _ui;
@@ -63,11 +61,7 @@ class Program
     private static MessageQueue _queue = new();
     
     private static CancellationTokenSource _cts = new();
-    // private static Server? _server;
-    // private static Client? _client;
-    // private static ConsoleUI? _ui; (DONE)
-    // private static string _username = "User";
-    //
+
     // Sprint 3 additions:
     private static PeerDiscovery? _peerDiscovery;
     private static HeartbeatMonitor? _heartbeatMonitor;
@@ -76,12 +70,6 @@ class Program
     {
         Console.WriteLine("Secure Distributed Messenger");
         Console.WriteLine("============================");
-
-        // TODO: Initialize components
-        // 1. Create Server for incoming connections
-        // 2. Create Client for outgoing connection
-        // 3. Create ConsoleUI for user interface (DONE)
-        // 4. (Optional) Create MessageQueue if using producer/consumer pattern
 
         _server = new Server();
         _client = new Client();
@@ -149,19 +137,6 @@ class Program
         bool running = true;
         while (running)
         {
-            // DONE:
-            // TODO: Implement the main input loop
-            // 1. Read a line from the console
-            // 2. Skip empty input
-            // 3. Parse the input using ConsoleUI.ParseCommand()
-            // 4. Handle the command based on CommandType:
-            //    - Connect: Call await _client.ConnectAsync(host, port)
-            //    - Listen: Call _server.Start(port)
-            //    - ListPeers: Display connection status
-            //    - History: Show message history (Sprint 3)
-            //    - Quit: Set running = false
-            //    - Not a command: Send as a message
-
             var input = Console.ReadLine();
             if (string.IsNullOrEmpty(input)) continue;
 
@@ -170,7 +145,6 @@ class Program
             switch(commandResult.CommandType)
             {
                 case CommandType.Connect:
-                    // Not implemented because Client doesn't exist
                     if(commandResult.Args[0] == "local") {
                         await _client.ConnectAsync("127.0.0.1", 5001);
                     }else {
@@ -179,7 +153,6 @@ class Program
                     _client.setClientID(Random.Shared.Next(1, 1000)); // Assign a random client ID for demonstration
                     break;
                 case CommandType.Listen:
-                    // Not implemented because Server doesn't exist 
                     if(commandResult.Args[0] == "local") {
                         await _server.Start(5001);
                     } else {
@@ -203,11 +176,6 @@ class Program
                     break;
             }
         }
-
-        // TODO: Implement graceful shutdown
-        // 1. Stop the server
-        // 2. Disconnect the client
-        // 3. (Sprint 3) Stop peer discovery and heartbeat monitor
         _cts.Cancel();
         _queue.CompleteAdding();
         receiveThread.Join();
@@ -217,26 +185,6 @@ class Program
 
         Console.WriteLine("Goodbye!");
 
-    }
-
-    /// <summary>
-    /// Display help information.
-    /// Replace this with ConsoleUI.ShowHelp() once implemented.
-    /// </summary>
-    private static void ShowHelp()
-    {
-        Console.WriteLine("\nAvailable Commands:");
-        Console.WriteLine("  /connect <ip> <port>  - Connect to another messenger");
-        Console.WriteLine("  /listen <port>        - Start listening for connections");
-        Console.WriteLine("  /peers                - Show connection status");
-        Console.WriteLine("  /history              - View message history (Sprint 3)");
-        Console.WriteLine("  /quit                 - Exit the application");
-        Console.WriteLine();
-        Console.WriteLine("Sprint Progression:");
-        Console.WriteLine("  Sprint 1: Basic /connect and /listen with message sending");
-        Console.WriteLine("  Sprint 2: Messages are encrypted end-to-end");
-        Console.WriteLine("  Sprint 3: Automatic peer discovery and reconnection");
-        Console.WriteLine();
     }
 
     // TODO: Add helper methods as needed
