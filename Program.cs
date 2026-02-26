@@ -171,11 +171,20 @@ class Program
             {
                 case CommandType.Connect:
                     // Not implemented because Client doesn't exist
-                    await _client.ConnectAsync(commandResult.Args[0], int.Parse(commandResult.Args[1]));
+                    if(commandResult.Args[0] == "local") {
+                        await _client.ConnectAsync("127.0.0.1", 5001);
+                    }else {
+                        await _client.ConnectAsync(commandResult.Args[0], int.Parse(commandResult.Args[1]));
+                    }
+                    _client.setClientID(Random.Shared.Next(1, 1000)); // Assign a random client ID for demonstration
                     break;
                 case CommandType.Listen:
                     // Not implemented because Server doesn't exist 
-                    await _server.Start(int.Parse(commandResult.Args[0]));
+                    if(commandResult.Args[0] == "local") {
+                        await _server.Start(5001);
+                    } else {
+                        await _server.Start(int.Parse(commandResult.Args[0]));
+                    }
                     _ui.DisplaySystem($"Listening on port {commandResult.Args[0]}");  // add this
                     break;
                 case CommandType.Quit:
@@ -188,7 +197,7 @@ class Program
                     // Only send if connected to a server; otherwise this node is a pure relay
                     if (_client?.IsConnected == true)
                     {
-                        var msg = new Message { Sender = _username, Content = commandResult.Message! };
+                        var msg = new Message { Sender = _username + await _client.getClientID(), Content = commandResult.Message! };
                         _queue.EnqueueOutgoing(msg);
                     }
                     break;

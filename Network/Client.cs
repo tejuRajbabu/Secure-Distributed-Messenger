@@ -52,6 +52,8 @@ public class Client
     public event Action<string>? OnDisconnected;
     public event Action<Message>? OnMessageReceived;
 
+    private int _clientID;
+
     public bool IsConnected => _client?.Connected ?? false;
 
     /// <summary>
@@ -234,5 +236,16 @@ public class Client
         _stream?.Close(); // Close the stream
         _client?.Close(); // Close the client
 
+    }
+
+    public async Task<int> getClientID()
+    {
+        return await Task.FromResult(this._clientID);
+    }
+
+    public async Task<int> setClientID(int id)
+    {
+        this._clientID = id;
+        return this._clientID;
     }
 }
