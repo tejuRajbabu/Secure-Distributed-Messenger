@@ -85,7 +85,13 @@ public class RsaEncryption
     /// </summary>
     public byte[] EncryptSessionKey(byte[] aesKey, byte[] peerPublicKey)
     {
-        throw new NotImplementedException("Implement EncryptSessionKey() - see TODO in comments above");
+
+        using RSA peerKey = RSA.Create();
+
+        peerKey.ImportRSAPublicKey(peerPublicKey, out _);
+        byte[] encryptedKey = peerKey.Encrypt(aesKey, RSAEncryptionPadding.OaepSHA256);
+        return encryptedKey;
+
     }
 
     /// <summary>
@@ -99,7 +105,10 @@ public class RsaEncryption
     /// </summary>
     public byte[] DecryptSessionKey(byte[] encryptedKey)
     {
-        throw new NotImplementedException("Implement DecryptSessionKey() - see TODO in comments above");
+
+        byte[] decryptedKey = _rsa.Decrypt(encryptedKey, RSAEncryptionPadding.OaepSHA256);
+        return decryptedKey;
+
     }
 
     /// <summary>
