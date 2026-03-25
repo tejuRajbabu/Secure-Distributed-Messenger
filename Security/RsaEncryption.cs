@@ -52,7 +52,10 @@ public class RsaEncryption
     /// </summary>
     public byte[] ExportPublicKey()
     {
-        throw new NotImplementedException("Implement ExportPublicKey() - see TODO in comments above");
+
+        byte[] publicKey = _rsa.ExportRSAPublicKey();
+        return publicKey;
+
     }
 
     /// <summary>
@@ -65,7 +68,8 @@ public class RsaEncryption
     /// </summary>
     public void ImportPublicKey(byte[] publicKey)
     {
-        throw new NotImplementedException("Implement ImportPublicKey() - see TODO in comments above");
+        _rsa.ImportRSAPublicKey(publicKey, out _);
+
     }
 
     /// <summary>
