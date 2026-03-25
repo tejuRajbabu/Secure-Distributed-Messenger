@@ -1,4 +1,4 @@
-// [Your Name Here]
+// Ethan Chang
 // CSCI 251 - Secure Distributed Messenger
 //
 // SPRINT 2: Security & Encryption
@@ -38,7 +38,9 @@ public class RsaEncryption
     public RsaEncryption()
     {
         // TODO: Generate RSA key pair (2048 bits)
-        throw new NotImplementedException("Implement constructor - create RSA key pair");
+
+        _rsa = RSA.Create(2048);
+        
     }
 
     /// <summary>
