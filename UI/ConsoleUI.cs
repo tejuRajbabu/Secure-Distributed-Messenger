@@ -70,6 +70,11 @@ public class ConsoleUI
         Console.WriteLine("  /peers                - Show connection status");
         Console.WriteLine("  /history              - View message history (Sprint 3)");
         Console.WriteLine("  /quit                 - Exit the application");
+        Console.WriteLine("  /create <room#>       - Create a room of that number");
+        Console.WriteLine("  /join <room#>         - Join the room of that number");
+        Console.WriteLine("  /leave <room#>        - Leave the room of that number");
+        Console.WriteLine("  /rooms                - List all rooms");
+        Console.WriteLine("  /msg <room#> <msg>    - Message the room of that number");
         Console.WriteLine();
         Console.WriteLine("Sprint Progression:");
         Console.WriteLine("  Sprint 1: Basic /connect and /listen with message sending");
@@ -149,6 +154,57 @@ public class ConsoleUI
                 case "/help":
                     commandResult.CommandType = CommandType.Help;
                     return commandResult;
+                case "/create":
+                    if (inputsplit.Length != 2)
+                    {
+                        commandResult.CommandType = CommandType.Unknown;
+                        return commandResult;
+                    } 
+                    else
+                    {
+                        commandResult.CommandType = CommandType.Create;
+                        commandResult.Args = [inputsplit[1]];
+                        return commandResult;
+                    }
+                case "/join":
+                    if (inputsplit.Length != 2)
+                    {
+                        commandResult.CommandType = CommandType.Unknown;
+                        return commandResult;
+                    } 
+                    else
+                    {
+                        commandResult.CommandType = CommandType.Join;
+                        commandResult.Args = [inputsplit[1]];
+                        return commandResult;
+                    }
+                case "/leave":
+                    if (inputsplit.Length != 2)
+                    {
+                        commandResult.CommandType = CommandType.Unknown;
+                        return commandResult;
+                    } 
+                    else
+                    {
+                        commandResult.CommandType = CommandType.Leave;
+                        commandResult.Args = [inputsplit[1]];
+                        return commandResult;
+                    }
+                case "/rooms":
+                    commandResult.CommandType = CommandType.Rooms;
+                    return commandResult;
+                case "/msg":
+                    if (inputsplit.Length != 3)
+                    {
+                        commandResult.CommandType = CommandType.Unknown;
+                        return commandResult;
+                    } 
+                    else
+                    {
+                        commandResult.CommandType = CommandType.Message;
+                        commandResult.Args = [inputsplit[1], inputsplit[2]];
+                        return commandResult;
+                    }
                 default:
                     commandResult.CommandType = CommandType.Unknown;
                     return commandResult;
@@ -174,7 +230,12 @@ public enum CommandType
     Peers,
     History,
     Help,
-    Quit
+    Quit,
+    Create,
+    Join,
+    Leave,
+    Rooms,
+    Message
 }
 
 /// <summary>

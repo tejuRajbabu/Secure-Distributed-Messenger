@@ -8,6 +8,8 @@
 //
 
 using System.Net;
+using System.Runtime.Serialization;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.VisualBasic;
 using SecureMessenger.Core;
 using SecureMessenger.Network;
@@ -165,6 +167,61 @@ class Program
                     break;
                 case CommandType.Help:  
                     _ui.ShowHelp();
+                    break;
+                case CommandType.Create:
+                    // await _server.CreateRoom(int.Parse(commandResult.Args[0]));
+                    if (_client?.IsConnected == true) 
+                    {
+                        var command = new Message { Sender = _username + await _client.getClientID(), Content = "/create " + commandResult.Args[0] };
+                        _client.Send(command);
+                    }
+                    else
+                    {
+                        await _server.CreateRoom(int.Parse(commandResult.Args[0]));
+                        _ui.DisplaySystem($"Room {commandResult.Args[0]} created.");
+                    }
+                    break;
+                case CommandType.Rooms:
+                    if (_client?.IsConnected == true) 
+                    {
+                        var command = new Message { Sender = _username + await _client.getClientID(), Content = "/rooms" };
+                        _client.Send(command);
+                    }
+                    else
+                    {
+                        List<int> _rooms = _server.GetRooms();
+                        foreach (int room in _rooms)
+                        {
+                            Console.WriteLine(room);
+                        }
+                    }
+                    break;
+                case CommandType.Join:
+                    if (_client?.IsConnected == true)
+                    {
+                        var command = new Message { Sender = _username + await _client.getClientID(), Content = "/join " + commandResult.Args[0] };
+                        _client.Send(command);
+                    }
+                    else
+                    {
+                        _ui.DisplaySystem($"Not connected to a server");
+                    }
+                    break;
+                case CommandType.Leave:
+                    if (_client?.IsConnected == true)
+                    {
+                        var command = new Message { Sender = _username + await _client.getClientID(), Content = "/leave " + commandResult.Args[0] };
+                        _client.Send(command);
+                    }
+                    break;
+                case CommandType.Message:
+                    if (_client?.IsConnected == true) {
+                        var command = new Message { Sender = _username + await _client.getClientID(), Content = "/msg " + string.Join(" ", commandResult.Args[0..]) };
+                        _client.Send(command);
+                    }
+
+                    // var message = new Message { Sender = _username + await _client.getClientID(), Content = String.Join(", ", commandResult.Args[1..]) };
+                    // _server.BroadcastToRoom(message, int.Parse(commandResult.Args[0]));
                     break;
                 default:
                     // Only send if connected to a server; otherwise this node is a pure relay
