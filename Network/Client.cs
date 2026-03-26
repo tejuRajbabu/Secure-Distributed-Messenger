@@ -28,7 +28,7 @@ using System.Numerics;
 using System.Text;
 using System.Text.Json;
 using SecureMessenger.Core;
-
+using SecureMessenger.Security;
 namespace SecureMessenger.Network;
 
 /// <summary>
@@ -53,7 +53,7 @@ public class Client
     public event Action<Message>? OnMessageReceived;
 
     private int _clientID;
-
+    public AesEncryption? SessionKey{ get; set;}
     public bool IsConnected => _client?.Connected ?? false;
 
     /// <summary>
@@ -163,8 +163,18 @@ public class Client
 
                 Message? message = JsonSerializer.Deserialize<Message>(payload);
 
-                OnMessageReceived?.Invoke(message); // Invoke the OnMessageReceived event with the deserialized message
+                if (message != null)
+                {
+                    if (SessionKey != null && message.EncryptedContent != null)
+                    {
+                        Console.WriteLine($"[DEBUG] Encrypted bytes: {BitConverter.ToString(message.EncryptedContent)}");
+                        message.Content = SessionKey.Decrypt(message.EncryptedContent);
+                        Console.WriteLine($"[DEBUG] Decrypted: \"{message.Content}\"");
+                    }
 
+                    OnMessageReceived?.Invoke(message); // Invoke the OnMessageReceived event with the deserialized message
+
+                }
             }
         }
         catch (OperationCanceledException)
@@ -207,6 +217,12 @@ public class Client
 
         try
         {
+            if (SessionKey != null && !string.IsNullOrEmpty(message.Content))
+            {
+                message.EncryptedContent = SessionKey.Encrypt(message.Content);
+                message.Content = string.Empty;
+
+            }
             string json = JsonSerializer.Serialize(message); // Serialize the message to JSON
             byte[] payloadBytes = Encoding.UTF8.GetBytes(json); // Convert JSON string to bytes
             byte[] lengthPrefix = BitConverter.GetBytes(payloadBytes.Length); // Create a 4-byte length prefix
