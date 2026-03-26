@@ -1,4 +1,4 @@
-// [Your Name Here]
+// Ethan Chang
 // CSCI 251 - Secure Distributed Messenger
 //
 // SPRINT 2: Security & Encryption
@@ -38,7 +38,9 @@ public class RsaEncryption
     public RsaEncryption()
     {
         // TODO: Generate RSA key pair (2048 bits)
-        throw new NotImplementedException("Implement constructor - create RSA key pair");
+
+        _rsa = RSA.Create(2048);
+        
     }
 
     /// <summary>
@@ -50,7 +52,10 @@ public class RsaEncryption
     /// </summary>
     public byte[] ExportPublicKey()
     {
-        throw new NotImplementedException("Implement ExportPublicKey() - see TODO in comments above");
+
+        byte[] publicKey = _rsa.ExportRSAPublicKey();
+        return publicKey;
+
     }
 
     /// <summary>
@@ -63,7 +68,8 @@ public class RsaEncryption
     /// </summary>
     public void ImportPublicKey(byte[] publicKey)
     {
-        throw new NotImplementedException("Implement ImportPublicKey() - see TODO in comments above");
+        _rsa.ImportRSAPublicKey(publicKey, out _);
+
     }
 
     /// <summary>
@@ -79,7 +85,13 @@ public class RsaEncryption
     /// </summary>
     public byte[] EncryptSessionKey(byte[] aesKey, byte[] peerPublicKey)
     {
-        throw new NotImplementedException("Implement EncryptSessionKey() - see TODO in comments above");
+
+        using RSA peerKey = RSA.Create();
+
+        peerKey.ImportRSAPublicKey(peerPublicKey, out _);
+        byte[] encryptedKey = peerKey.Encrypt(aesKey, RSAEncryptionPadding.OaepSHA256);
+        return encryptedKey;
+
     }
 
     /// <summary>
@@ -93,7 +105,10 @@ public class RsaEncryption
     /// </summary>
     public byte[] DecryptSessionKey(byte[] encryptedKey)
     {
-        throw new NotImplementedException("Implement DecryptSessionKey() - see TODO in comments above");
+
+        byte[] decryptedKey = _rsa.Decrypt(encryptedKey, RSAEncryptionPadding.OaepSHA256);
+        return decryptedKey;
+
     }
 
     /// <summary>
