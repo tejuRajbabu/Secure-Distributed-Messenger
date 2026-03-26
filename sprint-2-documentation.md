@@ -1,22 +1,21 @@
 # Sprint 2 Documentation
 ## Secure Distributed Messenger
 
-**Team Name:** [Your Team Name]
+**Team Name:** Group 25
 
 **Team Members:**
-- [Name 1] - [Role/Responsibilities]
-- [Name 2] - [Role/Responsibilities]
-- [Name 3] - [Role/Responsibilities]
-- [Name 4] - [Role/Responsibilities]
-- [Name 5] - [Role/Responsibilities]
+- Donald Tsang - AES Encryption
+- Ethan Chang - RSA Encryption, Secure Key Exchange Protocol
+- Cooper Miles - Chat Rooms
+- Teju - Message Authentication
 
-**Date:** [Submission Date]
+**Date:** 3/27/2026
 
 ---
 
 ## Build & Run Instructions
 
-[Update from Sprint 1 if needed, or reference Sprint 1 documentation]
+See [Sprint 1 Documentation - Build & Run Instructions](sprint-1-documentation.md#build-instructions).
 
 ---
 
@@ -106,7 +105,7 @@
 
 ## Features Implemented
 
-- [ ] AES encryption of messages
+- [x] AES encryption of messages
 - [ ] RSA key pair generation
 - [ ] RSA key exchange
 - [ ] AES session key exchange (encrypted with RSA)
