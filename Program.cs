@@ -214,6 +214,15 @@ class Program
                         _client.Send(command);
                     }
                     break;
+                case CommandType.Message:
+                    if (_client?.IsConnected == true) {
+                        var command = new Message { Sender = _username + await _client.getClientID(), Content = "/msg " + string.Join(" ", commandResult.Args[0..]) };
+                        _client.Send(command);
+                    }
+
+                    // var message = new Message { Sender = _username + await _client.getClientID(), Content = String.Join(", ", commandResult.Args[1..]) };
+                    // _server.BroadcastToRoom(message, int.Parse(commandResult.Args[0]));
+                    break;
                 default:
                     // Only send if connected to a server; otherwise this node is a pure relay
                     if (_client?.IsConnected == true)

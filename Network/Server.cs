@@ -263,6 +263,12 @@ public class Server
                                 SendToClient(client, response);
                             }
                         }
+                        else if (message.Content.StartsWith("/msg"))
+                        {
+                            string[] messagesplit = message.Content.Split(' ');
+                            var tosend = new Message { Sender = message.Sender, Content = string.Join(" ", messagesplit[2..]) };
+                            BroadcastToRoom(tosend, int.Parse(messagesplit[1]));
+                        }
                         else 
                         {
                             OnMessageReceived?.Invoke(message); //Invoke OnMessageReceived event
@@ -338,7 +344,12 @@ public class Server
     {
         lock(_clientsLock)
         {
-            if (_rooms.Contains(roomNum))
+            if (_roomToClient.ContainsKey(client))
+            {
+                Message response = new() { Sender = "Server", Content = "You are already in a room" };
+                SendToClient(client, response);
+            }
+            else if (_rooms.Contains(roomNum))
             {
                 _roomToClient.TryAdd(client, roomNum);
                 Message response = new() { Sender = "Server", Content = $"Successfully added to room {roomNum}" };
@@ -442,6 +453,47 @@ public class Server
             catch (Exception ex)
             {
                 Console.WriteLine($"Error broadcasting to client {client.Client.RemoteEndPoint}: {ex.Message}"); // Log any exceptions that occur while trying to broadcast to an individual client, but continue broadcasting to other clients
+            }
+        }
+    }
+
+
+    /// <summary>
+    /// Send a message to all connected clients in the given room.
+    /// </summary>
+    public void BroadcastToRoom(Message message, int roomnum)
+    {
+        string json = JsonSerializer.Serialize(message); // Serialize the message to JSON using JsonSerializer.Serialize
+
+        byte[] bytes = Encoding.UTF8.GetBytes(json); // Convert to bytes using Encoding.UTF8.GetBytes
+
+        byte[] lengthPrefix = BitConverter.GetBytes(bytes.Length); // Create a 4-byte length prefix using BitConverter.GetBytes
+
+        List<TcpClient> clientsCopy; // Variable to hold a copy of the _clients list
+
+        lock (_clientsLock)
+        {
+            clientsCopy = new List<TcpClient>(_clients);
+        }
+
+        for (int i = 0; i < clientsCopy.Count; i++) // Loop through each connected client
+        {
+            TcpClient client = clientsCopy[i]; // Get the current client from the copy of the _clients list
+
+             // Get the room number of client
+            if (_roomToClient.TryGetValue(client, out int room) && room == roomnum) { // Check if that client's room matches the specified room.
+                try
+                {
+                    NetworkStream stream = client.GetStream(); // Get the NetworkStream for the current client
+
+                    stream.Write(lengthPrefix, 0, lengthPrefix.Length); // Write the length prefix (4 bytes) to the client's stream
+
+                    stream.Write(bytes, 0, bytes.Length); // Write the payload (the serialized message) to the client's stream
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error broadcasting to client {client.Client.RemoteEndPoint}: {ex.Message}"); // Log any exceptions that occur while trying to broadcast to an individual client, but continue broadcasting to other clients
+                }
             }
         }
     }
