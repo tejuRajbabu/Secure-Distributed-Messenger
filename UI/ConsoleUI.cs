@@ -70,6 +70,11 @@ public class ConsoleUI
         Console.WriteLine("  /peers                - Show connection status");
         Console.WriteLine("  /history              - View message history (Sprint 3)");
         Console.WriteLine("  /quit                 - Exit the application");
+        Console.WriteLine("  /create <room#>       - Create a room of that number");
+        Console.WriteLine("  /join <room#>         - Join the room of that number");
+        Console.WriteLine("  /leave <room#>        - Leave the room of that number");
+        Console.WriteLine("  /rooms                - List all rooms");
+        Console.WriteLine("  /msg <room#> <msg>    - Message the room of that number");
         Console.WriteLine();
         Console.WriteLine("Sprint Progression:");
         Console.WriteLine("  Sprint 1: Basic /connect and /listen with message sending");
