@@ -1,4 +1,4 @@
-// Ethan Chang
+// [Your Name Here]
 // CSCI 251 - Secure Distributed Messenger
 //
 // SPRINT 2: Security & Encryption
