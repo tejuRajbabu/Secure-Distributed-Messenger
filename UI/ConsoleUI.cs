@@ -149,6 +149,57 @@ public class ConsoleUI
                 case "/help":
                     commandResult.CommandType = CommandType.Help;
                     return commandResult;
+                case "/create":
+                    if (inputsplit.Length != 2)
+                    {
+                        commandResult.CommandType = CommandType.Unknown;
+                        return commandResult;
+                    } 
+                    else
+                    {
+                        commandResult.CommandType = CommandType.Create;
+                        commandResult.Args = [inputsplit[1]];
+                        return commandResult;
+                    }
+                case "/join":
+                    if (inputsplit.Length != 2)
+                    {
+                        commandResult.CommandType = CommandType.Unknown;
+                        return commandResult;
+                    } 
+                    else
+                    {
+                        commandResult.CommandType = CommandType.Join;
+                        commandResult.Args = [inputsplit[1]];
+                        return commandResult;
+                    }
+                case "/leave":
+                    if (inputsplit.Length != 2)
+                    {
+                        commandResult.CommandType = CommandType.Unknown;
+                        return commandResult;
+                    } 
+                    else
+                    {
+                        commandResult.CommandType = CommandType.Leave;
+                        commandResult.Args = [inputsplit[1]];
+                        return commandResult;
+                    }
+                case "/rooms":
+                    commandResult.CommandType = CommandType.Rooms;
+                    return commandResult;
+                case "/msg":
+                    if (inputsplit.Length != 3)
+                    {
+                        commandResult.CommandType = CommandType.Unknown;
+                        return commandResult;
+                    } 
+                    else
+                    {
+                        commandResult.CommandType = CommandType.Message;
+                        commandResult.Args = [inputsplit[1], inputsplit[2]];
+                        return commandResult;
+                    }
                 default:
                     commandResult.CommandType = CommandType.Unknown;
                     return commandResult;
@@ -174,7 +225,12 @@ public enum CommandType
     Peers,
     History,
     Help,
-    Quit
+    Quit,
+    Create,
+    Join,
+    Leave,
+    Rooms,
+    Message
 }
 
 /// <summary>

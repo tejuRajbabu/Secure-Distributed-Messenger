@@ -17,8 +17,11 @@
 //               add heartbeat monitoring and reconnection support
 //
 
+using System.ComponentModel;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -41,7 +44,9 @@ public class Server
 {
     private TcpListener? _listener;
     private readonly List<TcpClient> _clients = new();
-    private readonly object _clientsLock = new();
+    private static readonly List<int> _rooms = new();
+    private readonly Dictionary<TcpClient, int> _roomToClient = new();
+    private static readonly object _clientsLock = new();
     private CancellationTokenSource? _cancellationTokenSource;
 
     // Events: invoke these with OnXxx?.Invoke(...) when something happens
@@ -198,7 +203,70 @@ public class Server
 
                     if (message != null)
                     {
-                        OnMessageReceived?.Invoke(message); //Invoke OnMessageReceived event
+                        // Handle commands first 
+                        if (message.Content.StartsWith("/create"))
+                        {
+                            string[] messagesplit = message.Content.Split(' ');
+                            if (messagesplit.Length == 2 && int.TryParse(messagesplit[1].Trim(), out int roomNum))
+                            {
+                                await CreateRoom(roomNum);
+                                // var response = new Message { Sender = "Server", Content = $"Room {roomNum} created" };
+
+                                // SendToClient(client, response);
+
+                            }
+                            else 
+                            {
+                                var response = new Message { Sender = "Server", Content = "Usage: /create <roomNumber>" };
+                                SendToClient(client, response);
+                            }
+                        }
+                        else if (message.Content.StartsWith("/rooms"))
+                        {
+                            List<int> rooms = GetRooms();
+                            if (rooms.Count == 0)
+                            {
+                                var response = new Message { Sender = "Server", Content = "No rooms" };
+                                SendToClient(client, response);
+                            } 
+                            else
+                            {
+                                string roomlist = string.Join(", ", rooms);
+
+                                var response = new Message { Sender = "Server", Content = roomlist };
+                                SendToClient(client, response);
+                            }
+                        } 
+                        else if (message.Content.StartsWith("/join"))
+                        {
+                            string[] messagesplit = message.Content.Split(' ');
+                            if (messagesplit.Length == 2 && int.TryParse(messagesplit[1].Trim(), out int roomNum))
+                            {
+                                await AddToRoom(client, roomNum);
+                            }
+                            else
+                            {
+                                var response = new Message { Sender = "Server", Content = "Usage: /join <roomNumber>" };
+                                SendToClient(client, response);
+                            }
+                        }
+                        else if (message.Content.StartsWith("/leave"))
+                        {
+                            string[] messagesplit = message.Content.Split(' ');
+                            if (messagesplit.Length == 2 && int.TryParse(messagesplit[1].Trim(), out int roomNum))
+                            {
+                                await RemoveFromRoom(client, roomNum);
+                            }
+                            else
+                            {
+                                var response = new Message { Sender = "Server", Content = "Usage: /leave <roomNumber>" };
+                                SendToClient(client, response);
+                            }
+                        }
+                        else 
+                        {
+                            OnMessageReceived?.Invoke(message); //Invoke OnMessageReceived event
+                        }
                     }
                 }
                 catch (OperationCanceledException)
@@ -215,6 +283,94 @@ public class Server
         {
             DisconnectClient(client, endpoint); //Always clean up the client connection when the loop exits for any reason
         }
+    }
+
+    /// <summary>
+    /// Send a message to a single specific client.
+    /// </summary>
+    private void SendToClient(TcpClient client, Message message)
+    {
+        try
+        {
+            string json = JsonSerializer.Serialize(message);
+            byte[] bytes = Encoding.UTF8.GetBytes(json);
+            byte[] lengthPrefix = BitConverter.GetBytes(bytes.Length);
+ 
+            NetworkStream stream = client.GetStream();
+            stream.Write(lengthPrefix, 0, lengthPrefix.Length);
+            stream.Write(bytes, 0, bytes.Length);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error sending to client: {ex.Message}");
+        }
+    }
+
+
+    public Task CreateRoom(int roomnum)
+    {
+        lock(_clientsLock)
+        {
+            if (!_rooms.Contains(roomnum))
+            {
+                _rooms.Add(roomnum);
+                Console.WriteLine($"Room {roomnum} created.");
+            }
+            else
+            {
+                Console.WriteLine($"Room {roomnum} already exists.");
+            }
+        }
+        return Task.CompletedTask;
+    }
+
+
+    public List<int> GetRooms()
+    {
+        lock (_clientsLock)
+        {
+            return new List<int>(_rooms);
+        }
+        
+    }
+
+    private Task AddToRoom(TcpClient client, int roomNum)
+    {
+        lock(_clientsLock)
+        {
+            if (_rooms.Contains(roomNum))
+            {
+                _roomToClient.TryAdd(client, roomNum);
+                Message response = new() { Sender = "Server", Content = $"Successfully added to room {roomNum}" };
+                SendToClient(client, response);
+            }
+            else
+            {
+                Message response = new() { Sender = "Server", Content = "That room does not exist" };
+                SendToClient(client, response);
+            }
+        }
+        return Task.CompletedTask;
+    }
+
+    private Task RemoveFromRoom(TcpClient client, int roomNum)
+    {
+        lock(_clientsLock)
+        {
+            _roomToClient.TryGetValue(client, out int room);
+            if (room == roomNum)
+            {
+                _roomToClient.Remove(client);
+                Message response = new() { Sender = "Server", Content = $"Successfully removed from room {roomNum}" };
+                SendToClient(client, response);
+            }
+            else
+            {
+                Message response = new() { Sender = "Server", Content = "You are not in this room" };
+                SendToClient(client, response);
+            }
+        }
+        return Task.CompletedTask;
     }
 
     /// <summary>
