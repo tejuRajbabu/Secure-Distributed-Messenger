@@ -1,4 +1,4 @@
-// Teju Rajbabu
+// [Your Name Here]
 // CSCI 251 - Secure Distributed Messenger
 //
 // SPRINT 2: Security & Encryption
@@ -47,7 +47,7 @@ public class MessageSigner
     /// </summary>
     public byte[] SignData(byte[] data)
     {
-        return _rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        throw new NotImplementedException("Implement SignData() - see TODO in comments above");
     }
 
     /// <summary>
@@ -72,24 +72,6 @@ public class MessageSigner
     /// </summary>
     public bool VerifyData(byte[] data, byte[] signature, byte[] publicKey)
     {
-        try
-        {
-            using RSA rsa = RSA.Create();
-            rsa.ImportSubjectPublicKeyInfo(publicKey, out _);
-
-            bool valid = rsa.VerifyData(data, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-            if (!valid)
-            {
-                Console.WriteLine("WARNING: Invalid signature detected - message may be tampered!");
-            }
-
-            return valid;
-        }
-        catch (CryptographicException)
-        {
-            Console.WriteLine("ERROR: Failed to verify signature - rejecting message");
-            return false;
-        }
+        throw new NotImplementedException("Implement VerifyData() - see TODO in comments above");
     }
 }
